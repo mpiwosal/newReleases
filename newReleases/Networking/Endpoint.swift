@@ -65,7 +65,7 @@ extension Endpoint {
         )
     }
     
-    static func getAccessTokenFromCodeEndpoint(_ code : String) -> Endpoint {
+    static func getAccessTokenEndpoint() -> Endpoint {
         return Endpoint(host: .heroku, path: "/api/token")
     }
     

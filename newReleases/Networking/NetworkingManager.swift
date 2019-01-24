@@ -8,39 +8,56 @@
 
 import Foundation
 import AuthenticationServices
+import Alamofire
 
-enum Result<String> {
-    case success
-    case failure(String)
+struct AuthResult : Codable {
+    var accessToken : String?
+    var refreshToken : String?
+}
+
+extension AuthResult {
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case refreshToken = "refresh_token"
+    }
+}
+
+protocol AuthorizationErrorDelegate {
+    func authorizationEndedWithError(_ error: Error)
+}
+
+struct NetworkingManager {
+    static var authorizationErrorDelegate : AuthorizationErrorDelegate?
+    static var accessToken : String?
+    static var refreshToken : String?
+
 }
 
 
-struct NetworkingManager {
+// Authentication
+extension NetworkingManager {
+    
     static var authenticationSession : ASWebAuthenticationSession?
-    static var urlSession = URLSession.shared
-    static var accessToken : String?
+    
     
     static func performAuthentication(){
         self.getAuthorizationCode(){
-            result in
-            self.getAccessToken(fromCode : result)
+            code in
+            self.getAccessToken(fromCode : code)
         }
     }
     
     private static func getAuthorizationCode(completionHandler: @escaping (String) -> Void){
         self.authenticationSession = ASWebAuthenticationSession(url: Endpoint.getAuthorizationCodeEndpoint().url!, callbackURLScheme: nil){
             url, error in
-            guard error == nil else{
-//                  present error
-//                if !((error as! ASWebAuthenticationSessionError).code == ASWebAuthenticationSessionError.canceledLogin) {
-//                    self.presentAlertWithError(error!)
-//                }
-                print(error!)
+            if let error = error {
+                authorizationErrorDelegate?.authorizationEndedWithError(error)
                 return
             }
             
             guard let code = url?.getValueOfQueryItem(withName: "code") else {
-                //present error somehow
+            
+                authorizationErrorDelegate?.authorizationEndedWithError(ASWebAuthenticationSessionError.init(_nsError: NSError(domain: "Undefined Error", code: 0, userInfo: nil)))
                 return
             }
             
@@ -49,14 +66,28 @@ struct NetworkingManager {
         }
         self.authenticationSession?.start()
     }
-    private static func getAccessToken(fromCode code : String){
-        let request = RequestBuilder.getAccessTokenRequest(fromCode: code)
+    
+    private static func getAccessToken(fromCode code: String){
+        let parameters = ["code" : code]
         
-        let dataTask = urlSession.dataTask(with: request){
-            data, response, error in
-            print("data: \(data) \n response: \(response) \n error: \(error)")
+        
+        AF.request(Endpoint.getAccessTokenEndpoint().url!, method: .post, parameters: parameters).responseJSON {
+            response in
+            switch response.result {
+            case .success:
+                // if, for some reason, data is nil despite response.result being success,
+                // fallthrough to case .failure
+                guard let data = response.data else {
+                    fallthrough
+                }
+                let authResult = try! JSONDecoder().decode(AuthResult.self, from: data)
+                accessToken = authResult.accessToken
+                refreshToken = authResult.refreshToken
+                print(authResult)
+            case .failure:
+                print("failed")
+            }
+            
         }
-        dataTask.resume()
-        
     }
 }

@@ -9,10 +9,11 @@
 import UIKit
 import AuthenticationServices
 
-class ViewController: UIViewController {
+class LoginController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        NetworkingManager.authorizationErrorDelegate = self
 
     }
     
@@ -20,11 +21,21 @@ class ViewController: UIViewController {
         NetworkingManager.performAuthentication()
     }
     
+}
+
+extension LoginController : AuthorizationErrorDelegate {
+    
+    func authorizationEndedWithError(_ error: Error) {
+         //                  present error
+        if !((error as! ASWebAuthenticationSessionError).code == ASWebAuthenticationSessionError.canceledLogin) {
+            self.presentAlertWithError(error)
+        }
+    }
+    
     func presentAlertWithError(_ error: Error){
         let alert = UIAlertController(title: "Could not login", message: error.localizedDescription, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert,animated: true)
     }
-    
 }
 
