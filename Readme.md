@@ -11,8 +11,9 @@ NewReleases is an iOS app written in Swift 4.2. The Goal of the app is to show u
 
 # TODO's
 
-- show artists that the user is following
-- allow users to unfollow/re-follow artist from the list
+- show artists that the user is following [IN PROGRESS]
+- allow users to unfollow/re-follow artist from the list [IN PROGRESS]
+- open a relevant spotify app view after clicking on an artist [IN PROGRESS]
 - show view with latest releases
 - potentially show view with upcoming releases (depends on Spotify API limitations)
 - implement caching mechanizm to avoid excessive number of requests

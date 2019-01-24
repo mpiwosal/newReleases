@@ -38,10 +38,10 @@
             </objects>
             <point key="canvasLocation" x="-643" y="-157"/>
         </scene>
-        <!--View Controller-->
+        <!--Artists View Controller-->
         <scene sceneID="WPz-hz-wdB">
             <objects>
-                <viewController id="4sT-2e-yVg" sceneMemberID="viewController">
+                <viewController id="4sT-2e-yVg" customClass="ArtistsViewController" customModule="newReleases" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="YwZ-mo-Lgm">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

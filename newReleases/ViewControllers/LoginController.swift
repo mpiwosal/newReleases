@@ -13,7 +13,7 @@ class LoginController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        NetworkingManager.authorizationErrorDelegate = self
+        NetworkingManager.delegate = self
 
     }
     
@@ -23,13 +23,18 @@ class LoginController: UIViewController {
     
 }
 
-extension LoginController : AuthorizationErrorDelegate {
+extension LoginController : NetworkingManagerDelegate {
     
     func authorizationEndedWithError(_ error: Error) {
          //                  present error
         if !((error as! ASWebAuthenticationSessionError).code == ASWebAuthenticationSessionError.canceledLogin) {
             self.presentAlertWithError(error)
         }
+    }
+    
+    func authorizedSuccessfully() {
+        let artistsVC = ArtistsViewController()
+        self.present(artistsVC, animated: true, completion: nil)
     }
     
     func presentAlertWithError(_ error: Error){

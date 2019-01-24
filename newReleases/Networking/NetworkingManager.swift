@@ -22,14 +22,22 @@ extension AuthResult {
     }
 }
 
-protocol AuthorizationErrorDelegate {
+protocol NetworkingManagerDelegate {
     func authorizationEndedWithError(_ error: Error)
+    func authorizedSuccessfully()
 }
 
 struct NetworkingManager {
-    static var authorizationErrorDelegate : AuthorizationErrorDelegate?
+    static var delegate : NetworkingManagerDelegate?
     static var accessToken : String?
     static var refreshToken : String?
+    static var accessTokenHeader : HTTPHeader? {
+        guard let accessToken = accessToken else {
+            return nil
+        }
+       
+        return HTTPHeader(name: "Authorization", value: "Bearer \(accessToken)")
+    }
 
 }
 
@@ -51,13 +59,13 @@ extension NetworkingManager {
         self.authenticationSession = ASWebAuthenticationSession(url: Endpoint.getAuthorizationCodeEndpoint().url!, callbackURLScheme: nil){
             url, error in
             if let error = error {
-                authorizationErrorDelegate?.authorizationEndedWithError(error)
+                delegate?.authorizationEndedWithError(error)
                 return
             }
             
             guard let code = url?.getValueOfQueryItem(withName: "code") else {
             
-                authorizationErrorDelegate?.authorizationEndedWithError(ASWebAuthenticationSessionError.init(_nsError: NSError(domain: "Undefined Error", code: 0, userInfo: nil)))
+                delegate?.authorizationEndedWithError(ASWebAuthenticationSessionError.init(_nsError: NSError(domain: "Undefined Error", code: 0, userInfo: nil)))
                 return
             }
             
@@ -83,7 +91,7 @@ extension NetworkingManager {
                 let authResult = try! JSONDecoder().decode(AuthResult.self, from: data)
                 accessToken = authResult.accessToken
                 refreshToken = authResult.refreshToken
-                print(authResult)
+                delegate?.authorizedSuccessfully()
             case .failure:
                 print("failed")
             }
@@ -91,3 +99,30 @@ extension NetworkingManager {
         }
     }
 }
+
+//general requests
+extension NetworkingManager {
+    static func request(endpoint : Endpoint, method : HTTPMethod = .get, parameters: Parameters? = nil, headers : HTTPHeaders? = nil){
+        
+        var allHeaders = HTTPHeaders()
+        if let headers = headers {
+            allHeaders = headers
+        }
+        allHeaders.add(self.accessTokenHeader!)
+        
+        AF.request(endpoint.url!, method: method, parameters: parameters, headers: allHeaders).validate().responseJSON{
+            response in
+            switch (response.result){
+            case .success:
+                print(response.value)
+            case .failure:
+                if (response.response?.statusCode == 429){
+                    print("access token expired")
+                    //perform refresh token logic
+                }
+                print("\(String(describing: response.error))")
+            }
+        }
+    }
+}
+

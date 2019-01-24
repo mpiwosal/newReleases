@@ -15,13 +15,14 @@ struct Endpoint {
         static let scheme = "https"
         static let client_id = "cf640cf876ac4763aab8b3fe21d5ecfd"
         //add additional scopes separating them by spaces (check if it is properly encoded), or "+"
-        static let scopes = "user-follow-modify"
+        static let scopes = "user-follow-read"
         static let redirect_uri = "newReleases://authCallback"
     }
     
     enum Host : String {
         case heroku = "newreleasesapp.herokuapp.com"
-        case spotify = "accounts.spotify.com"
+        case spotifyAuth = "accounts.spotify.com"
+        case spotifyApi = "api.spotify.com"
     }
     
     let path : String
@@ -54,7 +55,7 @@ extension Endpoint {
 //    }
     
     static func getAuthorizationCodeEndpoint() -> Endpoint {
-        return Endpoint(host: .spotify, path: "/authorize",
+        return Endpoint(host: .spotifyAuth, path: "/authorize",
                         queryItems:
                         [
                                 URLQueryItem(name: "client_id", value: Constants.client_id),
@@ -67,6 +68,19 @@ extension Endpoint {
     
     static func getAccessTokenEndpoint() -> Endpoint {
         return Endpoint(host: .heroku, path: "/api/token")
+    }
+    
+    
+    // GET FOLLOWED ARTISTS
+    // GET https://api.spotify.com/v1/me/following
+    // REQUIRES user-follow-modify
+    static func getFollowingEndpoint() -> Endpoint{
+        return Endpoint(host: .spotifyApi, path: "/v1/me/following",
+                        queryItems:
+                        [
+                            URLQueryItem(name: "type", value: "artist"),
+                            URLQueryItem(name: "limit", value: "50")
+                        ])
     }
     
 }
