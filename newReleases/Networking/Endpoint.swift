@@ -79,7 +79,7 @@ extension Endpoint {
                         queryItems:
                         [
                             URLQueryItem(name: "type", value: "artist"),
-                            URLQueryItem(name: "limit", value: "50")
+                            URLQueryItem(name: "limit", value: "20")
                         ])
     }
     

@@ -32,6 +32,7 @@ struct NetworkingManager {
     static var accessToken : String?
     static var refreshToken : String?
     static var accessTokenHeader : HTTPHeader? {
+        
         guard let accessToken = accessToken else {
             return nil
         }
