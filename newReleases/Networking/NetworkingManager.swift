@@ -102,7 +102,7 @@ extension NetworkingManager {
 
 //general requests
 extension NetworkingManager {
-    static func request(endpoint : Endpoint, method : HTTPMethod = .get, parameters: Parameters? = nil, headers : HTTPHeaders? = nil){
+    static func genericRequest(url: URL, method : HTTPMethod = .get, parameters: Parameters? = nil, headers : HTTPHeaders? = nil){
         
         var allHeaders = HTTPHeaders()
         if let headers = headers {
@@ -110,7 +110,7 @@ extension NetworkingManager {
         }
         allHeaders.add(self.accessTokenHeader!)
         
-        AF.request(endpoint.url!, method: method, parameters: parameters, headers: allHeaders).validate().responseJSON{
+        AF.request(url, method: method, parameters: parameters, headers: allHeaders).responseJSON{
             response in
             switch (response.result){
             case .success:
